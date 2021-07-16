@@ -1,0 +1,36 @@
+---
+title: "IDD comments"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(pins)
+library(tidyverse)
+
+knitr::opts_chunk$set(echo = TRUE)
+
+board_register_rsconnect("SPACED",
+                         server = "https://involve.nottshc.nhs.uk:8443",
+                         key = Sys.getenv("CONNECT_API_KEY"))
+
+df <- pin_get("trustData", board = "SPACED")
+
+# filter by team
+
+team_codes <- c(409L, 601L, 602L, 603L, 605L, 607L, 608L, 610L, 612L, 613L, 
+                615L, 616L, 617L, 618L, 619L, 512L, 800L, 801L, 802L, 803L, 
+                31609L, 31540L)
+
+df_filter <- df %>% 
+  filter(TeamC %in% team_codes)
+
+```
+
+## 
+
+```{r}
+
+
+```
+
