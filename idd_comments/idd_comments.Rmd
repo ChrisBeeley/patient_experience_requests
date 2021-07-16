@@ -1,6 +1,7 @@
 ---
 title: "IDD comments"
-output: html_document
+output:
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -23,14 +24,38 @@ team_codes <- c(409L, 601L, 602L, 603L, 605L, 607L, 608L, 610L, 612L, 613L,
                 31609L, 31540L)
 
 df_filter <- df %>% 
-  filter(TeamC %in% team_codes)
+  filter(TeamC %in% team_codes,
+         Date > "2019-01-01")
 
 ```
 
-## 
+## Report spec
 
-```{r}
+All IDD services, irrespective of division/directorate (so, specialist IDD dental in CS division, IDD directorate in Rampton, IDD services like Orion and Horizon Unit in MH and CAMHS IDD in MH). 
+
+Any feedback comments you can find mentioning keywords accessing any other services 
+
+Keywords: IDD, ASD, Autistic Spectrum Disorder, Autism, Autistic, Learning Disability, Learning  Difficulties, Down Syndrome perhaps
+
+Main themes from feedback in each service and then aggregated if a pattern is emerging spanning multiple teams/divisions.
+
+Quotes which illustrate the theme would be great, just a handful across the whole report
+
+```{r, results = "asis"}
+
+for(i in df_filter$Location){
+  
+  cat(paste0("<h3>", i, "</h3>"))
+  
+  df_filter %>%
+    filter(Location == i,
+         !is.na(Improve)) %>% 
+  pull(Improve) %>% 
+  cat(paste0("<p>", "</p>"))
+  
+}
 
 
 ```
-
+     
+     
