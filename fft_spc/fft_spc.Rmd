@@ -99,15 +99,6 @@ trustData %>%
 
 ```{r}
 
-# clean the dataset first
-
-clean_division <- trustData %>%
-  mutate(period = lubridate::floor_date(Date, "month")) %>% 
-  group_by(period, Division2) %>% 
-  summarise(FFT = fft_calc(Promoter2),
-            n = n()) %>% 
-  filter(n >= 10)
-
 clean_division %>% 
   ptd_spc(value_field = FFT, 
           date_field = period, 
