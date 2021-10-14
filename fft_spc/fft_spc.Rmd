@@ -1,0 +1,122 @@
+---
+title: "FFT SPC"
+author: "Chris Beeley"
+date: "14/10/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(NHSRplotthedots)
+library(tidyverse)
+
+knitr::opts_chunk$set(echo = FALSE, fig.width = 10,
+                      message = FALSE, warning = FALSE)
+
+board <- pins::board_rsconnect()
+
+trustData <- pins::pin_read(board, "chrisbeeley/trustData") %>% 
+  dplyr::filter(Date >= "2019-09-01" ,
+                Date < "2021-10-01")
+
+# fft function
+
+fft_calc <- function(score){
+  
+  round(sum(score %in% 4:5, na.rm = TRUE) /
+          sum(score %in% 0:5, na.rm = TRUE) * 100, 0)
+}
+
+```
+
+## Summary
+
+### Whole Trust
+
+```{r}
+
+trustData %>%
+  mutate(period = lubridate::floor_date(Date, "month")) %>% 
+  group_by(period) %>% 
+  summarise(FFT = fft_calc(Promoter2)) %>%
+  ptd_spc(value_field = FFT, 
+          date_field = period, 
+          improvement_direction = "increase") %>%  
+  ptd_create_ggplot(
+    theme_override = theme(
+      axis.text.x = element_text(angle = 45, size = 6))
+  )
+
+```
+
+### By division
+
+```{r}
+
+# clean the dataset first
+
+clean_division <- trustData %>%
+  mutate(period = lubridate::floor_date(Date, "month")) %>% 
+  group_by(period, Division2) %>% 
+  summarise(FFT = fft_calc(Promoter2),
+            n = n()) %>% 
+  filter(n >= 10)
+
+clean_division %>% 
+  ptd_spc(value_field = FFT, 
+          date_field = period, 
+          improvement_direction = "increase",
+          facet_field = Division2) %>%  
+  ptd_create_ggplot(
+    theme_override = theme(
+      axis.text.x = element_text(angle = 45, size = 6))
+  )
+
+```
+
+## Rebasing after April '20
+
+### Whole Trust
+
+```{r}
+
+trustData %>%
+  mutate(period = lubridate::floor_date(Date, "month")) %>% 
+  group_by(period) %>% 
+  summarise(FFT = fft_calc(Promoter2)) %>%
+  ptd_spc(value_field = FFT, 
+          date_field = period, 
+          improvement_direction = "increase",
+          rebase = ptd_rebase(as.Date("2020-04-01"))) %>%  
+  ptd_create_ggplot(
+    theme_override = theme(
+      axis.text.x = element_text(angle = 45, size = 6))
+  )
+
+```
+
+### By division
+
+```{r}
+
+# clean the dataset first
+
+clean_division <- trustData %>%
+  mutate(period = lubridate::floor_date(Date, "month")) %>% 
+  group_by(period, Division2) %>% 
+  summarise(FFT = fft_calc(Promoter2),
+            n = n()) %>% 
+  filter(n >= 10)
+
+clean_division %>% 
+  ptd_spc(value_field = FFT, 
+          date_field = period, 
+          improvement_direction = "increase",
+          facet_field = Division2,
+          rebase = ptd_rebase(as.Date("2020-04-01"))) %>%  
+  ptd_create_ggplot(
+    theme_override = theme(
+      axis.text.x = element_text(angle = 45, size = 6))
+  )
+
+```
