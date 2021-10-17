@@ -45,9 +45,15 @@ trustData %>%
   ptd_create_ggplot(
     theme_override = theme(
       axis.text.x = element_text(angle = 45, size = 6))
-  )
+  ) + ylim(NA, 100)
 
 ```
+
+SPC chart of the last two years across the whole Trust shows special cause improvement in the first half (due to 8 consecutive points above the mean) and special cause concern in the second half (14 consecutive points below the mean).
+
+There were two significant events in April 2020 which is the last point that is high- firstly that the Trust transitioned onto the new FFT question set by NHS England (this was the point at which the data collection was ready for the new question). The second change was the start of the COVID pandemic. Either might be responsible for the lower scores observed in the second half of the series.
+
+Scores in the three areas of the trust (forensic, mental health, and community health) are usually quite different and so a subgroup analysis was done of these three groups. Note that where areas had fewer than 10 responses in a month that month is not represented on the graph.
 
 ### By division
 
@@ -70,9 +76,11 @@ clean_division %>%
   ptd_create_ggplot(
     theme_override = theme(
       axis.text.x = element_text(angle = 45, size = 6))
-  )
+  ) + ylim(NA, 100)
 
 ```
+
+As can be seen, community and mental health both show a similar pattern of high and then low scores, but forensic services does not. It may be more useful to rebase the SPC chart after April '20 since the series appears to break there.
 
 ## Rebasing after April '20
 
@@ -91,9 +99,11 @@ trustData %>%
   ptd_create_ggplot(
     theme_override = theme(
       axis.text.x = element_text(angle = 45, size = 6))
-  )
+  ) + ylim(NA, 100)
 
 ```
+
+As can be seen, this rebased analysis seems to largely fit the idea that there was a significant decline in FFT scores across the Trust in April 2020. This analysis was repeated at the subgroup level.
 
 ### By division
 
@@ -108,6 +118,59 @@ clean_division %>%
   ptd_create_ggplot(
     theme_override = theme(
       axis.text.x = element_text(angle = 45, size = 6))
-  )
+  ) + ylim(NA, 100)
 
 ```
+
+Something else that is noticeable from this analysis is that the variability of the points increased after April 2020. This is usually caused by a reduction in the amount of data being collected. Numbers of feedback forms was analysed by clinical area.
+
+### Numbers
+
+```{r}
+
+trustData %>%
+  mutate(period = lubridate::floor_date(Date, "month")) %>% 
+  group_by(period, Division2) %>% 
+  summarise(n = as.numeric(n())) %>% 
+  filter(!is.na(Division2)) %>% 
+  ptd_spc(value_field = n, 
+          date_field = period, 
+          improvement_direction = "increase",
+          facet_field = Division2) %>%  
+  ptd_create_ggplot(
+    fixed_y_axis_multiple = TRUE,
+    theme_override = theme(
+      axis.text.x = element_text(angle = 45, size = 6))
+  ) + ylim(0, 1500)
+
+```
+
+As can be seen, there is substantially less data being collected now than there was before April 2020, particularly in community health areas. By contrast, mental health has been collecting more data in the last 6 months. Given that scores tend to be lower in mental health areas (due, it is assumed, to a different patient population with different clinical needs and expectations of care) this also partly explains the lower scores in the last 6 months or so, and perhaps in particular the low score in September 2021. 
+
+### Weighting
+
+To investigate this conclusion, the scores were weighted so that each area (forensic, mental health, and community physical health) contributed the same to the score regardless of how many responses they collected. This was achieved by finding the mean of the scores in each area for each date.
+
+```{r}
+
+clean_division %>% 
+  group_by(period) %>% 
+  summarise(AV_FFT = mean(FFT)) %>% 
+  ptd_spc(value_field = AV_FFT, 
+          date_field = period, 
+          improvement_direction = "increase") %>%  
+  ptd_create_ggplot(
+    fixed_y_axis_multiple = TRUE,
+    theme_override = theme(
+      axis.text.x = element_text(angle = 45, size = 6))
+  ) + ylim(NA, 100)
+
+```
+
+As can be seen, a great deal of the reduction that was previously observed disappears under this analysis. It would appear that a lot of the reduction in FFT score over time was simply differences in sample composition, and particularly with less data being collected from the area that tended to produce the highest FFT scores.
+
+## Conclusion
+
+SPC analysis appears to explain the data observed reasonably well, with a break in the series given at April 2020, which coincided with a different FFT question being asked and the beginning of the COVID pandemic. The low score in September 2021 looks substantially less low when the series is rebased, however it is the lowest in the last two years and this analysis should certainly be repeated in October and in subsequent months to determine whether its level rebounds to its mean. 
+
+Further, a reanalysis using weighted scores also shows that a lot of the reduction is in fact caused by changes in sample composition over time, likely due to the effect of COVID on usual methods of collecting patient experience data. 
