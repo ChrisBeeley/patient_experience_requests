@@ -13,7 +13,8 @@ library(tidyverse)
 knitr::opts_chunk$set(echo = FALSE, fig.width = 10,
                       message = FALSE, warning = FALSE)
 
-board <- pins::board_rsconnect()
+board <- pins::board_rsconnect(server = Sys.getenv("CONNECT_SERVER"),
+                               key = Sys.getenv("CLOUD_API_KEY"))
 
 trustData <- pins::pin_read(board, "chrisbeeley/trustData") %>% 
   dplyr::filter(Date >= "2019-09-01" ,
@@ -147,30 +148,6 @@ trustData %>%
 
 As can be seen, there is substantially less data being collected now than there was before April 2020, particularly in community health areas. By contrast, mental health has been collecting more data in the last 6 months. Given that scores tend to be lower in mental health areas (due, it is assumed, to a different patient population with different clinical needs and expectations of care) this also partly explains the lower scores in the last 6 months or so, and perhaps in particular the low score in September 2021. 
 
-### Weighting
-
-To investigate this conclusion, the scores were weighted so that each area (forensic, mental health, and community physical health) contributed the same to the score regardless of how many responses they collected. This was achieved by finding the mean of the scores in each area for each date.
-
-```{r}
-
-clean_division %>% 
-  group_by(period) %>% 
-  summarise(AV_FFT = mean(FFT)) %>% 
-  ptd_spc(value_field = AV_FFT, 
-          date_field = period, 
-          improvement_direction = "increase") %>%  
-  ptd_create_ggplot(
-    fixed_y_axis_multiple = TRUE,
-    theme_override = theme(
-      axis.text.x = element_text(angle = 45, size = 6))
-  ) + ylim(NA, 100)
-
-```
-
-As can be seen, a great deal of the reduction that was previously observed disappears under this analysis. It would appear that a lot of the reduction in FFT score over time was simply differences in sample composition, and particularly with less data being collected from the area that tended to produce the highest FFT scores.
-
 ## Conclusion
 
 SPC analysis appears to explain the data observed reasonably well, with a break in the series given at April 2020, which coincided with a different FFT question being asked and the beginning of the COVID pandemic. The low score in September 2021 looks substantially less low when the series is rebased, however it is the lowest in the last two years and this analysis should certainly be repeated in October and in subsequent months to determine whether its level rebounds to its mean. 
-
-Further, a reanalysis using weighted scores also shows that a lot of the reduction is in fact caused by changes in sample composition over time, likely due to the effect of COVID on usual methods of collecting patient experience data. 
