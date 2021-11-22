@@ -1,0 +1,35 @@
+---
+title: "AMH comments"
+author: "Chris Beeley"
+date: "22/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+library(tidyverse)
+
+knitr::opts_chunk$set(echo = FALSE)
+
+board <- pins::board_rsconnect()
+
+trust_data <- pins::pin_read(board, "chrisbeeley/trustData") %>% 
+  dplyr::filter(Date >= "2020-10-01" ,
+                Date < "2021-09-30")
+
+# load in team names and codes
+
+team_codes <- readr::read_csv("team_info.csv")
+
+```
+
+Teams split three ways
+
+· Community
+· Crisis
+· Inpatient
+
+From Quarter 3 2020-21 to Q2 2021-22
+
+# Community
+
