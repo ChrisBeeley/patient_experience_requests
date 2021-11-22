@@ -13,10 +13,10 @@ library(knitr)
 knitr::opts_chunk$set(echo = FALSE)
 
 board_register_rsconnect("SPACED",
-                         server = "https://involve.nottshc.nhs.uk:8443",
+                         server = "https://involve.nottshc.nhs.uk/rsconnect",
                          key = Sys.getenv("CONNECT_API_KEY"))
 
-df <- pin_get("trustData", board = "SPACED")
+df <- pin_get("chrisbeeley/trustData", board = "SPACED")
 
 # filter by team
 
