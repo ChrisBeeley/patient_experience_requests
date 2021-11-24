@@ -2,7 +2,9 @@
 title: "AMH comments"
 author: "Chris Beeley"
 date: "22/11/2021"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -19,17 +21,63 @@ trust_data <- pins::pin_read(board, "chrisbeeley/trustData") %>%
 
 # load in team names and codes
 
-team_codes <- readr::read_csv("team_info.csv")
+team_info <- readr::read_csv("team_info.csv")
 
 ```
 
+## Summary
+
 Teams split three ways
 
-· Community
-· Crisis
-· Inpatient
+* Community
+* Crisis
+* Inpatient
 
 From Quarter 3 2020-21 to Q2 2021-22
 
-# Community
+## Community
 
+```{r}
+
+make_table <- function(type){
+  
+  codes <- team_info %>% 
+    filter(Type == type) %>% 
+    pull(TeamC)
+  
+  negative <- trust_data %>% 
+    filter(TeamC %in% codes) %>% 
+    mutate(TeamN = factor(TeamN)) %>% 
+    filter(!is.na(Imp_N1), Imp_N1 != "XN") %>% 
+    count(TeamN, name = "Negative", .drop = FALSE)
+  
+  positive <- trust_data %>% 
+    filter(TeamC %in% codes) %>% 
+    mutate(TeamN = factor(TeamN)) %>% 
+    filter(!is.na(Best_N1)) %>% 
+    count(TeamN, name = "Positive", .drop = FALSE) %>% 
+    select(Positive)
+  
+  bind_cols(negative, positive) %>% 
+    knitr::kable()
+}
+
+make_table("community")
+
+```
+
+## Inpatient
+
+```{r}
+
+make_table("inpatient")
+
+```
+
+## Crisis
+
+```{r}
+
+make_table("crisis")
+
+```
