@@ -39,30 +39,42 @@ From Quarter 3 2020-21 to Q2 2021-22
 
 ```{r}
 
-make_table <- function(type){
+make_graph <- function(type){
   
   codes <- team_info %>% 
-    filter(Type == type) %>% 
-    pull(TeamC)
+    filter(Type == type, !is.na(teamc))
   
-  negative <- trust_data %>% 
-    filter(TeamC %in% codes) %>% 
-    mutate(TeamN = factor(TeamN)) %>% 
-    filter(!is.na(Imp_N1), Imp_N1 != "XN") %>% 
-    count(TeamN, name = "Negative", .drop = FALSE)
+  for_graph <- codes %>% 
+    rowwise() %>% 
+    mutate(Negative = trust_data %>% 
+             filter(TeamC == teamc, 
+                    !is.na(Imp_N1), 
+                    Imp_N1 != "XN") %>% 
+             nrow()) %>% 
+    mutate(Positive = trust_data %>% 
+             filter(TeamC == teamc, 
+                    !is.na(Best_N1)) %>% 
+             nrow())
   
-  positive <- trust_data %>% 
-    filter(TeamC %in% codes) %>% 
-    mutate(TeamN = factor(TeamN)) %>% 
-    filter(!is.na(Best_N1)) %>% 
-    count(TeamN, name = "Positive", .drop = FALSE) %>% 
-    select(Positive)
+  graph <- for_graph %>% 
+    pivot_longer(cols = c(Complaints, Negative, Positive),
+                 names_to = "Feedback") %>% 
+    ggplot(aes(x = Name, y = value)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    facet_wrap(~ Feedback, ncol = 1) + 
+    theme(axis.text.x = element_text(angle = 70, hjust = 1, size = 10))
   
-  bind_cols(negative, positive) %>% 
-    knitr::kable()
+  graph %>% 
+    ggsave(file = paste0(type, ".png"))
+  
+  graph %>% 
+    ggsave(file = paste0(type, ".pdf"))
+  
+  return(graph)
+  
 }
 
-make_table("community")
+make_graph("community")
 
 ```
 
@@ -70,7 +82,7 @@ make_table("community")
 
 ```{r}
 
-make_table("inpatient")
+make_graph("inpatient")
 
 ```
 
@@ -78,6 +90,6 @@ make_table("inpatient")
 
 ```{r}
 
-make_table("crisis")
+make_graph("crisis")
 
 ```
